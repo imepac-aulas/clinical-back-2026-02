@@ -1,0 +1,36 @@
+server:
+  port: ${SERVER_PORT:8081}
+
+spring:
+  application:
+    name: ms-administrativo
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3307/clinical_administrativo?serverTimezone=UTC}
+    username: ${DB_USER:clinical}
+    password: ${DB_PASSWORD:clinical}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate   # o schema é gerenciado pelo Flyway (db/migration)
+  flyway:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+springdoc:
+  swagger-ui:
+    # Swagger UI exibe o contrato escrito à mão (fonte de verdade)
+    url: /contract/openapi-administrativo.yaml
+    path: /swagger-ui.html
+
+logging:
+  level:
+    br.edu.imepac: INFO
