@@ -1,10 +1,11 @@
 package br.edu.imepac.clinicalapi.common.exception;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import br.edu.imepac.clinicalapi.common.dto.ErrorResponse;
 import br.edu.imepac.clinicalapi.common.dto.ErrorResponse.FieldDetail;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,10 +25,16 @@ import java.util.List;
  * Único ponto de tratamento de exceções dos microserviços.
  * Cada módulo o habilita com {@code @Import(GlobalExceptionHandler.class)}.
  */
-@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    // Logger do SLF4J (API de logs) - o Spring Boot usa o Logback como implementação.
+    // Níveis: debug (detalhe), info (fluxo normal), warn (erro do cliente), error (falha nossa).
+    // Use sempre placeholders {} em vez de concatenar strings.
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    // Cada @ExceptionHandler captura um tipo de exceção lançada em QUALQUER controller/service
+    // e converte no JSON padrão (ErrorResponse). Assim ninguém precisa de try/catch nos controllers.
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ErrorResponse> handleApi(ApiException ex, HttpServletRequest request) {
         if (ex.getStatus().is5xxServerError()) {
@@ -88,6 +95,8 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.NOT_FOUND, "Recurso não encontrado: " + request.getRequestURI(), request, List.of());
     }
 
+    // Último recurso: qualquer exceção não prevista vira 500 sem vazar detalhes internos ao cliente
+    // (o stack trace completo vai só para o log).
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex, HttpServletRequest request) {
         log.error("Erro inesperado em {}", request.getRequestURI(), ex);

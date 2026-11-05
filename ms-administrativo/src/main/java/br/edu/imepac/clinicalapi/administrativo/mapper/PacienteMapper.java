@@ -6,6 +6,9 @@ import br.edu.imepac.clinicalapi.administrativo.entities.Paciente;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
+/**
+ * Mapper de Paciente (DTO <-> entidade) com ModelMapper.
+ */
 @Component
 public class PacienteMapper {
 

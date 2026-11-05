@@ -27,6 +27,8 @@ import java.time.LocalDateTime;
 @DiscriminatorColumn(name = "tipo")
 public abstract class Agendamento extends BaseEntity {
 
+    // Guardamos só o id: médico e paciente são dados de OUTRO microserviço (outro banco),
+    // então não existe @ManyToOne nem chave estrangeira entre eles.
     @Column(name = "medico_id", nullable = false)
     private Long medicoId;
 
@@ -36,6 +38,7 @@ public abstract class Agendamento extends BaseEntity {
     @Column(name = "data_agendamento", nullable = false)
     private LocalDateTime dataAgendamento;
 
+    // STRING grava o nome ("AGENDADO") em vez do número - mais seguro se a ordem do enum mudar
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private StatusConsulta status;

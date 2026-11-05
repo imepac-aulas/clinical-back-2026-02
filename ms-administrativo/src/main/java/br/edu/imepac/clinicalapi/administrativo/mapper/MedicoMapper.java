@@ -6,6 +6,10 @@ import br.edu.imepac.clinicalapi.administrativo.entities.Medico;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
+/**
+ * Mapper de Médico. Atenção: especialidadeId (request) vira o objeto Especialidade no service,
+ * por isso o campo "especialidade" é ignorado aqui (skip).
+ */
 @Component
 public class MedicoMapper {
 

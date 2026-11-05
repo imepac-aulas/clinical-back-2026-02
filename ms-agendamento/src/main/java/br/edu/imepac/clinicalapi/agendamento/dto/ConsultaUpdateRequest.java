@@ -8,6 +8,10 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+/**
+ * DTO de ENTRADA. As anotações (@NotBlank, @Size, @Past...) são validadas pelo Bean Validation
+ * quando o controller usa @Valid; mensagens de erro saem no campo "details" da resposta 400.
+ */
 @Getter
 @Setter
 public class ConsultaUpdateRequest {

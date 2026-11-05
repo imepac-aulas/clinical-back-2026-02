@@ -1,3 +1,5 @@
+-- Migration Flyway: executada uma única vez, em ordem de versão (V1, V2...).
+-- NUNCA edite uma migration já aplicada; crie uma nova (V2__...).
 CREATE TABLE especialidades (
     id               BIGINT AUTO_INCREMENT PRIMARY KEY,
     nome             VARCHAR(100) NOT NULL,

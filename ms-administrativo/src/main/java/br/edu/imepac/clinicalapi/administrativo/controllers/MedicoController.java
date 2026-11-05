@@ -28,9 +28,11 @@ public class MedicoController {
 
     private final MedicoService service;
 
+    // @Valid dispara o Bean Validation do DTO; se falhar => MethodArgumentNotValidException => 400
     @PostMapping
     public ResponseEntity<MedicoResponse> criar(@Valid @RequestBody MedicoRequest request) {
         MedicoResponse criado = service.criar(request);
+        // Boas práticas REST: 201 Created + header Location apontando para o novo recurso
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(criado.getId()).toUri();
         return ResponseEntity.created(location).body(criado);
     }

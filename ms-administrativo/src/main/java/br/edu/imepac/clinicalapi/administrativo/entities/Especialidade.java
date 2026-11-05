@@ -7,6 +7,9 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Entidade JPA mapeada para a tabela "especialidades" (criada pela migration Flyway V1).
+ */
 @Getter
 @Setter
 @Entity

@@ -3,6 +3,9 @@ package br.edu.imepac.clinicalapi.agendamento.entities;
 import java.util.EnumSet;
 import java.util.Set;
 
+/**
+ * Estados possíveis de uma consulta.
+ */
 public enum StatusConsulta {
     AGENDADO, CANCELADO, REALIZADO, REMARCADO;
 

@@ -12,8 +12,8 @@ Backend da clínica médica em **microserviços**. Este repositório traz dois s
                        │ms-administ.│◀─│ms-agendament│  agendamento chama o administrativo (REST)
                        │   :8081    │  │    :8082    │  para validar médico e paciente
                        └─────┬──────┘  └──────┬──────┘
-                             │   MySQL :3306 (um schema por serviço)
-                       clinical_administrativo   clinical_agendamento
+                        MySQL próprio (:3307)    MySQL próprio (:3308)
+                        clinical_administrativo  clinical_agendamento
 ```
 
 | Módulo | Porta | Responsabilidade |
@@ -70,7 +70,7 @@ docker build -f api-gateway/Dockerfile       -t clinical/api-gateway:latest .
 ### Opção 1 — tudo de uma vez (docker compose)
 
 ```bash
-docker compose up -d --build     # sobe MySQL + 3 serviços (aguarda os healthchecks)
+docker compose up -d --build     # sobe 2 MySQL (um por serviço) + 3 serviços (aguarda os healthchecks)
 docker compose ps
 docker compose logs -f ms-agendamento
 docker compose down              # para tudo (adicione -v para apagar o banco)
@@ -87,21 +87,24 @@ As imagens usam `eclipse-temurin:17-jre-jammy` (multi-arquitetura, roda em Apple
 # rede para os containers se encontrarem pelo nome
 docker network create clinical-net
 
-# banco (cria os dois schemas via script de init)
-docker run -d --name clinical-mysql --network clinical-net -p 3307:3306 \
-  -e MYSQL_ROOT_PASSWORD=root -e MYSQL_USER=clinical -e MYSQL_PASSWORD=clinical \
-  -v "$(pwd)/docker/mysql/init:/docker-entrypoint-initdb.d:ro" \
-  mysql:8.4
+# um banco por microserviço
+docker run -d --name mysql-administrativo --network clinical-net -p 3307:3306 \
+  -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=clinical_administrativo \
+  -e MYSQL_USER=clinical -e MYSQL_PASSWORD=clinical mysql:8.4
 
-# aguarde o MySQL ficar pronto (~20s):  docker logs -f clinical-mysql  (procure "ready for connections")
+docker run -d --name mysql-agendamento --network clinical-net -p 3308:3306 \
+  -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=clinical_agendamento \
+  -e MYSQL_USER=clinical -e MYSQL_PASSWORD=clinical mysql:8.4
+
+# aguarde os bancos ficarem prontos (~20s):  docker logs mysql-administrativo  (procure "ready for connections")
 
 docker run -d --name ms-administrativo --network clinical-net -p 8081:8081 \
-  -e DB_URL="jdbc:mysql://clinical-mysql:3306/clinical_administrativo?serverTimezone=UTC" \
+  -e DB_URL="jdbc:mysql://mysql-administrativo:3306/clinical_administrativo?serverTimezone=UTC" \
   -e DB_USER=clinical -e DB_PASSWORD=clinical \
   clinical/ms-administrativo:latest
 
 docker run -d --name ms-agendamento --network clinical-net -p 8082:8082 \
-  -e DB_URL="jdbc:mysql://clinical-mysql:3306/clinical_agendamento?serverTimezone=UTC" \
+  -e DB_URL="jdbc:mysql://mysql-agendamento:3306/clinical_agendamento?serverTimezone=UTC" \
   -e DB_USER=clinical -e DB_PASSWORD=clinical \
   -e ADMINISTRATIVO_URL=http://ms-administrativo:8081 \
   clinical/ms-agendamento:latest
@@ -112,16 +115,16 @@ docker run -d --name api-gateway --network clinical-net -p 8080:8080 \
   clinical/api-gateway:latest
 ```
 
-Parar e remover: `docker rm -f api-gateway ms-agendamento ms-administrativo clinical-mysql && docker network rm clinical-net`
+Parar e remover: `docker rm -f api-gateway ms-agendamento ms-administrativo mysql-agendamento mysql-administrativo && docker network rm clinical-net`
 
-> Dentro da rede Docker os serviços se falam pelo **nome do container** (`ms-administrativo`, `clinical-mysql`),
+> Dentro da rede Docker os serviços se falam pelo **nome do container** (`ms-administrativo`, `mysql-administrativo`),
 > nunca por `localhost`. Por isso as URLs são passadas por variável de ambiente.
 
 ### Variáveis de ambiente
 
 | Variável | Serviço | Padrão (execução local) |
 |---|---|---|
-| `DB_URL`, `DB_USER`, `DB_PASSWORD` | administrativo, agendamento | `jdbc:mysql://localhost:3307/clinical_<modulo>`, `clinical`/`clinical` |
+| `DB_URL`, `DB_USER`, `DB_PASSWORD` | administrativo, agendamento | administrativo: `localhost:3307/clinical_administrativo`; agendamento: `localhost:3308/clinical_agendamento`; usuário/senha `clinical` |
 | `ADMINISTRATIVO_URL` | agendamento, gateway | `http://localhost:8081` |
 | `AGENDAMENTO_URL` | gateway | `http://localhost:8082` |
 | `SERVER_PORT` | todos | 8081 / 8082 / 8080 |
@@ -131,7 +134,7 @@ Parar e remover: `docker rm -f api-gateway ms-agendamento ms-administrativo clin
 Suba só o banco e rode os serviços pela IDE ou Maven:
 
 ```bash
-docker compose up -d mysql
+docker compose up -d mysql-administrativo mysql-agendamento
 mvn -pl ms-administrativo spring-boot:run
 mvn -pl ms-agendamento spring-boot:run     # em outro terminal
 mvn -pl api-gateway spring-boot:run        # em outro terminal
@@ -159,6 +162,21 @@ curl -s "localhost:8080/agendamento/consultas?status=AGENDADO"
 
 Erros seguem sempre o mesmo formato (`timestamp`, `status`, `error`, `message`, `path`, `details[]`):
 400 validação, 404 não encontrado, 409 conflito, 422 regra de negócio, 503 serviço dependente fora do ar.
+
+## Logs (SLF4J)
+
+Cada classe que registra logs declara o seu logger (SLF4J + Logback, já incluídos no Spring Boot):
+
+```java
+private static final Logger log = LoggerFactory.getLogger(MinhaClasse.class);
+
+log.info("Criando médico CRM {}", crm);     // fluxo normal
+log.warn("CPF já cadastrado");              // erro do cliente (4xx)
+log.error("Falha ao chamar serviço", ex);   // falha nossa/integração (5xx), com stack trace
+```
+
+Use sempre `{}` (placeholders), nunca concatenação; não registre dados sensíveis (senhas, CPF completo).
+Para ver mais detalhes: `LOGGING_LEVEL_BR_EDU_IMEPAC=DEBUG` (variável de ambiente do container).
 
 ## Estrutura de um módulo (use como modelo)
 

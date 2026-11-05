@@ -1,6 +1,7 @@
 package br.edu.imepac.clinicalapi.gateway.filter;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -9,9 +10,13 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 /** Registra método, caminho, status e duração de cada requisição que passa pelo gateway. */
-@Slf4j
 @Component
 public class RequestLoggingFilter implements GlobalFilter, Ordered {
+
+    // Logger do SLF4J (API de logs) - o Spring Boot usa o Logback como implementação.
+    // Níveis: debug (detalhe), info (fluxo normal), warn (erro do cliente), error (falha nossa).
+    // Use sempre placeholders {} em vez de concatenar strings.
+    private static final Logger log = LoggerFactory.getLogger(RequestLoggingFilter.class);
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {

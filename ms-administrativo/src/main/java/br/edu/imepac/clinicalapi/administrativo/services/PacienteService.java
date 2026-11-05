@@ -1,5 +1,7 @@
 package br.edu.imepac.clinicalapi.administrativo.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import br.edu.imepac.clinicalapi.administrativo.dto.PacienteRequest;
 import br.edu.imepac.clinicalapi.administrativo.dto.PacienteResponse;
 import br.edu.imepac.clinicalapi.administrativo.entities.Paciente;
@@ -8,16 +10,22 @@ import br.edu.imepac.clinicalapi.administrativo.repositories.PacienteRepository;
 import br.edu.imepac.clinicalapi.common.exception.ConflictException;
 import br.edu.imepac.clinicalapi.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
+/**
+ * Regras de negócio de Paciente: unicidade de CPF.
+ */
 @Service
 @RequiredArgsConstructor
 public class PacienteService {
+
+    // Logger do SLF4J (API de logs) - o Spring Boot usa o Logback como implementação.
+    // Níveis: debug (detalhe), info (fluxo normal), warn (erro do cliente), error (falha nossa).
+    // Use sempre placeholders {} em vez de concatenar strings.
+    private static final Logger log = LoggerFactory.getLogger(PacienteService.class);
 
     private final PacienteRepository repository;
     private final PacienteMapper mapper;
@@ -25,7 +33,9 @@ public class PacienteService {
     @Transactional
     public PacienteResponse criar(PacienteRequest request) {
         log.info("Criando paciente");
+        // CPF único -> 409 Conflict
         if (repository.existsByCpf(request.getCpf())) {
+            log.warn("CPF de paciente já cadastrado");
             throw new ConflictException("Já existe paciente com o CPF informado");
         }
         return mapper.toResponse(repository.save(mapper.toEntity(request)));

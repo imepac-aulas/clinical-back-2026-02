@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 @MappedSuperclass
 public abstract class BaseEntity {
 
+    // IDENTITY: o MySQL gera o id (AUTO_INCREMENT)
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -28,6 +29,7 @@ public abstract class BaseEntity {
     @Column(name = "data_modificacao", nullable = false)
     private LocalDateTime dataModificacao;
 
+    // Callbacks do JPA: preenchem as datas automaticamente antes de inserir/atualizar
     @PrePersist
     void aoCriar() {
         LocalDateTime agora = LocalDateTime.now();

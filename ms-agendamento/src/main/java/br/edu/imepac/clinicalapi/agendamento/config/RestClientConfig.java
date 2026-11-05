@@ -8,6 +8,9 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
 import java.time.Duration;
 
+/**
+ * Configurações do cliente HTTP usado para falar com outros microserviços.
+ */
 @Configuration
 public class RestClientConfig {
 

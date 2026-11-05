@@ -3,6 +3,9 @@ package br.edu.imepac.clinicalapi.administrativo.repositories;
 import br.edu.imepac.clinicalapi.administrativo.entities.Medico;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+/**
+ * Repository de Médico (Spring Data JPA gera a implementação em tempo de execução).
+ */
 public interface MedicoRepository extends JpaRepository<Medico, Long> {
 
     boolean existsByCpf(String cpf);

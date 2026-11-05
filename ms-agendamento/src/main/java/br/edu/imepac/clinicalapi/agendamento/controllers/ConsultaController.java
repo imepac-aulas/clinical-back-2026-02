@@ -31,6 +31,7 @@ public class ConsultaController {
 
     private final ConsultaService service;
 
+    // @Valid dispara o Bean Validation do DTO; se falhar => 400 (tratado no GlobalExceptionHandler)
     @PostMapping
     public ResponseEntity<ConsultaResponse> agendar(@Valid @RequestBody ConsultaRequest request) {
         ConsultaResponse criada = service.agendar(request);
@@ -56,6 +57,7 @@ public class ConsultaController {
         return service.remarcar(id, request);
     }
 
+    // PATCH = alteração parcial; aqui usado para ações de mudança de status
     @PatchMapping("/{id}/cancelar")
     public ConsultaResponse cancelar(@PathVariable Long id) {
         return service.cancelar(id);

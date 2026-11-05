@@ -6,6 +6,10 @@ import br.edu.imepac.clinicalapi.administrativo.entities.Especialidade;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
+/**
+ * Converte DTO <-> entidade com ModelMapper, para o service não ficar cheio de getters/setters.
+ * Nunca exponha a entidade JPA diretamente na API: use sempre DTOs.
+ */
 @Component
 public class EspecialidadeMapper {
 

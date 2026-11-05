@@ -11,6 +11,10 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.util.Collection;
 
+/**
+ * Repository de Consulta. O método {@code buscar} usa JPQL com filtros opcionais:
+ * quando o parâmetro é null a condição "(:x is null or ...)" é ignorada.
+ */
 public interface ConsultaRepository extends JpaRepository<Consulta, Long> {
 
     @Query("""

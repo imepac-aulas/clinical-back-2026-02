@@ -11,6 +11,9 @@ import java.util.List;
 @Getter
 @Builder
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
+/**
+ * DTO de SAÍDA: o que a API devolve ao cliente (nunca a entidade JPA).
+ */
 public class ErrorResponse {
 
     private final Instant timestamp;

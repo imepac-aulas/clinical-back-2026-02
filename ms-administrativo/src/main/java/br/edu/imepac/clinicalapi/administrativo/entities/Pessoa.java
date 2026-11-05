@@ -17,6 +17,7 @@ public abstract class Pessoa extends BaseEntity {
     @Column(nullable = false, length = 150)
     private String nome;
 
+    // unique=true documenta a restrição; o que vale de fato é a constraint criada na migration Flyway
     @Column(nullable = false, unique = true, length = 11)
     private String cpf;
 

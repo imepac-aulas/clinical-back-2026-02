@@ -5,6 +5,9 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+/**
+ * DTO de SAÍDA: o que a API devolve ao cliente (nunca a entidade JPA).
+ */
 @Getter
 @Setter
 public class EspecialidadeResponse {

@@ -7,6 +7,9 @@ import br.edu.imepac.clinicalapi.agendamento.entities.Consulta;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
+/**
+ * Mapper de Consulta (DTO <-> entidade) com ModelMapper.
+ */
 @Component
 public class ConsultaMapper {
 
