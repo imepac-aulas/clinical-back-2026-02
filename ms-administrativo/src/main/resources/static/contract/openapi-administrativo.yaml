@@ -351,7 +351,7 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
     UnprocessableEntity:
-      description: Regra de negócio violada (ex.: especialidade informada não existe)
+      description: "Regra de negócio violada (ex.: especialidade informada não existe)"
       content:
         application/json:
           schema:
@@ -373,7 +373,7 @@ components:
           example: Not Found
         message:
           type: string
-          example: Médico não encontrado: 10
+          example: "Médico não encontrado: 10"
         path:
           type: string
           example: /medicos/10

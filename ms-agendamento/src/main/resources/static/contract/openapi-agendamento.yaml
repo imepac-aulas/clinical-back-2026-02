@@ -248,7 +248,7 @@ components:
           example: Unprocessable Entity
         message:
           type: string
-          example: Médico não encontrado: 10
+          example: "Médico não encontrado: 10"
         path:
           type: string
           example: /consultas
