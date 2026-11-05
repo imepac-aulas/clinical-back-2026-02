@@ -76,6 +76,11 @@ docker compose logs -f ms-agendamento
 docker compose down              # para tudo (adicione -v para apagar o banco)
 ```
 
+Se a porta 8080 do host estiver ocupada, troque a do gateway: `GATEWAY_PORT=8090 docker compose up -d --build`
+(e use `localhost:8090` nos exemplos).
+
+As imagens usam `eclipse-temurin:17-jre-jammy` (multi-arquitetura, roda em Apple Silicon e x86).
+
 ### Opção 2 — cada serviço como um container (`docker run`)
 
 ```bash
