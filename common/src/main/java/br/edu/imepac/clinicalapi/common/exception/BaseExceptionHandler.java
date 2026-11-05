@@ -14,7 +14,6 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -22,16 +21,18 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Único ponto de tratamento de exceções dos microserviços.
- * Cada módulo o habilita com {@code @Import(GlobalExceptionHandler.class)}.
+ * Implementação base do tratamento de exceções (Exception Handling no Spring MVC).
+ * <p>
+ * Não é um advice por si só: cada módulo cria o seu {@code GlobalExceptionHandler}
+ * ({@code @RestControllerAdvice}) estendendo esta classe, no pacote {@code exceptions}.
+ * Os métodos {@code @ExceptionHandler} são herdados, então o formato de erro é igual em todos os serviços.
  */
-@RestControllerAdvice
-public class GlobalExceptionHandler {
+public abstract class BaseExceptionHandler {
 
     // Logger do SLF4J (API de logs) - o Spring Boot usa o Logback como implementação.
     // Níveis: debug (detalhe), info (fluxo normal), warn (erro do cliente), error (falha nossa).
     // Use sempre placeholders {} em vez de concatenar strings.
-    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(BaseExceptionHandler.class);
 
     // Cada @ExceptionHandler captura um tipo de exceção lançada em QUALQUER controller/service
     // e converte no JSON padrão (ErrorResponse). Assim ninguém precisa de try/catch nos controllers.

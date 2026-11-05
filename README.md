@@ -18,7 +18,7 @@ Backend da clínica médica em **microserviços**. Este repositório traz dois s
 
 | Módulo | Porta | Responsabilidade |
 |---|---|---|
-| `common` | – | Biblioteca: exceções, `ErrorResponse`, `BaseEntity`, `GlobalExceptionHandler` (`@RestControllerAdvice`) |
+| `common` | – | Biblioteca: exceções, `ErrorResponse`, `BaseEntity`, `BaseExceptionHandler` (handlers de erro reaproveitados pelos módulos) |
 | `ms-administrativo` | 8081 | Especialidades, Médicos e Pacientes |
 | `ms-agendamento` | 8082 | Consultas (agendar, remarcar, cancelar, realizar) |
 | `api-gateway` | 8080 | Ponto de entrada único; roteia por prefixo |
@@ -40,7 +40,7 @@ Backend da clínica médica em **microserviços**. Este repositório traz dois s
 | **ModelMapper** | serviços | Converte DTO <-> entidade automaticamente, evitando código repetitivo de getters/setters. |
 | **Lombok** | todos | Gera getters/setters/construtores em tempo de compilação (`@Getter`, `@Setter`, `@RequiredArgsConstructor`). |
 | **SLF4J + Logback** | todos | SLF4J é a API de logs usada no código (`LoggerFactory.getLogger`); o Logback é quem escreve, já incluído no Spring Boot. |
-| **@RestControllerAdvice** | `common` | Ponto único de tratamento de erros: converte exceções no JSON padrão (`ErrorResponse`) com o HTTP status correto. |
+| **@RestControllerAdvice / @ExceptionHandler** | `exceptions/GlobalExceptionHandler` de cada serviço (herda `BaseExceptionHandler` do `common`) | Ponto único de tratamento de erros (Exception Handling no Spring MVC): converte exceções no JSON padrão (`ErrorResponse`) com o HTTP status correto. |
 | **RestClient** | `ms-agendamento` | Cliente HTTP do Spring para um microserviço chamar outro (aqui, agendamento -> administrativo), com timeouts. |
 | **Spring Cloud Gateway** | `api-gateway` | Porta de entrada única: recebe as requisições e roteia por prefixo (`/administrativo/**`, `/agendamento/**`), sem regra de negócio. Nas rotas futuras é onde entrariam autenticação e CORS. |
 | **Spring Boot Actuator** | todos | Endpoints de saúde (`/actuator/health`) usados pelos healthchecks do Docker. |
@@ -219,6 +219,7 @@ ms-<modulo>/
     services/       regras de negócio, @Transactional, logs @Slf4j
     controllers/    endpoints REST (finos: só delegam ao service)
     dto/            Request/Response com Bean Validation
+    exceptions/     GlobalExceptionHandler (@RestControllerAdvice) - tratamento central de erros
     mapper/         ModelMapper (DTO <-> entidade)
     client/         chamadas REST a outros módulos (ex.: AdministrativoClient)
     config/         beans (ModelMapper, RestClient, import do advice)
