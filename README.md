@@ -23,8 +23,38 @@ Backend da clínica médica em **microserviços**. Este repositório traz dois s
 | `ms-agendamento` | 8082 | Consultas (agendar, remarcar, cancelar, realizar) |
 | `api-gateway` | 8080 | Ponto de entrada único; roteia por prefixo |
 
-Stack: Java 17, Spring Boot 3.3, Spring Data JPA, Flyway, MySQL 8, ModelMapper, Lombok/SLF4J, springdoc (Swagger UI),
-JUnit 5 + Mockito, Spring Cloud Gateway, Docker. (Segurança/Keycloak, AWS e Kubernetes ficam para depois.)
+(Segurança/Keycloak, AWS e Kubernetes ficam para uma etapa futura.)
+
+## Tecnologias e para que servem
+
+| Tecnologia | Onde | Para que serve |
+|---|---|---|
+| **Java 17** | todos | Linguagem/plataforma (LTS). |
+| **Maven** (multi-módulo) | raiz | Compila, roda os testes e empacota. O `pom.xml` raiz declara os módulos e as versões das bibliotecas; cada módulo só lista o que usa. |
+| **Spring Boot 3.3** | todos | Sobe a aplicação com configuração automática e servidor web embutido (Tomcat/Netty); empacota tudo num único `.jar` executável. |
+| **Spring Web (MVC)** | serviços | Cria os endpoints REST (`@RestController`, `@GetMapping`...). |
+| **Spring Data JPA + Hibernate** | serviços | Mapeia classes Java (entidades) para tabelas e gera o SQL; os repositories são só interfaces. |
+| **MySQL 8** | docker-compose | Banco relacional. **Um banco por microserviço**: cada serviço é dono dos seus dados e ninguém acessa o banco do outro (só pela API). |
+| **Flyway** | serviços | Versiona o schema do banco com scripts SQL (`db/migration/V1__...sql`) executados automaticamente na subida. O Hibernate só *valida* (`ddl-auto: validate`), nunca altera tabelas. |
+| **Bean Validation (Jakarta)** | serviços | Valida os DTOs com anotações (`@NotBlank`, `@Past`, `@Future`...) quando o controller usa `@Valid`. |
+| **ModelMapper** | serviços | Converte DTO <-> entidade automaticamente, evitando código repetitivo de getters/setters. |
+| **Lombok** | todos | Gera getters/setters/construtores em tempo de compilação (`@Getter`, `@Setter`, `@RequiredArgsConstructor`). |
+| **SLF4J + Logback** | todos | SLF4J é a API de logs usada no código (`LoggerFactory.getLogger`); o Logback é quem escreve, já incluído no Spring Boot. |
+| **@RestControllerAdvice** | `common` | Ponto único de tratamento de erros: converte exceções no JSON padrão (`ErrorResponse`) com o HTTP status correto. |
+| **RestClient** | `ms-agendamento` | Cliente HTTP do Spring para um microserviço chamar outro (aqui, agendamento -> administrativo), com timeouts. |
+| **Spring Cloud Gateway** | `api-gateway` | Porta de entrada única: recebe as requisições e roteia por prefixo (`/administrativo/**`, `/agendamento/**`), sem regra de negócio. Nas rotas futuras é onde entrariam autenticação e CORS. |
+| **Spring Boot Actuator** | todos | Endpoints de saúde (`/actuator/health`) usados pelos healthchecks do Docker. |
+| **OpenAPI / Swagger** | serviços | O contrato da API (YAML) é a especificação combinada entre os times. |
+| **springdoc-openapi (Swagger UI)** | serviços | Página web interativa (`/swagger-ui.html`) que exibe o contrato e permite testar os endpoints. |
+| **JUnit 5** | testes | Framework de testes (`@Test`, asserções). |
+| **Mockito** | testes | Cria dublês (mocks) de repositories/clients para testar os services isoladamente (testes unitários). |
+| **Spring Boot Test + MockMvc** | testes | Testes de integração: sobem o contexto Spring completo e chamam a API via HTTP simulado. |
+| **H2 (modo MySQL)** | testes | Banco em memória usado só nos testes, para rodarem sem Docker. |
+| **Docker (multi-stage)** | todos | Empacota cada microserviço numa imagem: o 1º estágio compila com Maven, o 2º só leva o JRE e o `.jar` (imagem menor). |
+| **Docker Compose** | raiz | Sobe todo o ambiente (2 bancos + 3 serviços) com um comando, na ordem certa (healthchecks + `depends_on`). |
+
+Tipos de teste do projeto: **unitário** (`services/`, Mockito, sem Spring), **integração** (`integration/`, Spring +
+H2), **cliente HTTP** (`client/`, `MockRestServiceServer`) e **contrato** (`contract/`, valida que o YAML OpenAPI é válido).
 
 ## Contrato primeiro (Swagger/OpenAPI)
 
@@ -51,8 +81,8 @@ Para criar uma API nova: **1)** escreva/atualize o YAML e combine com os outros 
 mvn clean verify
 ```
 
-Roda os testes unitários (JUnit + Mockito) e os de integração (contexto Spring completo com H2 em modo MySQL;
-o `ms-administrativo` é simulado nos testes do agendamento). Não precisa de MySQL/Docker para os testes.
+Roda os testes unitários (JUnit + Mockito), de integração e do contrato OpenAPI. Os de integração usam o contexto Spring completo com H2 em modo MySQL
+(nos testes do agendamento, o `ms-administrativo` é simulado). Não precisa de MySQL/Docker para os testes.
 
 ## Gerar as imagens Docker
 
